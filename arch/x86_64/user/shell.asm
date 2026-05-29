@@ -2,29 +2,60 @@
 default rel
 %include "arch/x86_64/system/opcodes.inc"
 
+extern print_string_64
+extern put_char_64
+extern keyboard_read_char
+extern kmalloc
+
 section .data
 prompt: db 0x0A, '> ', 0
 welcome: db 'GloriaOS Interactive Shell v1.0. Ready.', 0x0A, 0
-help_text: db 'Available commands:', 0x0A, '  help   - Show this help', 0x0A, '  clear  - Clear the screen', 0x0A, '  reboot - Hard reboot the system', 0x0A, 0
+help_text: db 'Available commands:', 0x0A, '  help   - Show this help', 0x0A, '  clear  - Clear the screen', 0x0A, '  shutdown - Hard reboot the system', 0x0A, 0
 unknown_cmd: db 'Unknown command. Type "help" for a list of commands.', 0x0A, 0
+heap_err_msg: db 'Kernel Panic: Heap Allocation Failed!', 0x0A, 0
 
 cmd_help: db 'help', 0
 cmd_clear: db 'clear', 0
-cmd_reboot: db 'reboot', 0
+cmd_reboot: db 'shutdown', 0
 
 section .bss
 cmd_buffer: resb 64
 
 section .text
 global shell_entry_point
-extern print_string_64
-extern put_char_64
-extern keyboard_read_char
 
 shell_entry_point:
     call do_clear
+
     lea rdi, [rel welcome]
     call print_string_64
+
+    mov rdi, 64
+    call kmalloc
+    test rax, rax
+    jz .heap_error
+
+    mov rdi, rax
+    mov byte [rdi], 'H'
+    mov byte [rdi+1], 'e'
+    mov byte [rdi+2], 'a'
+    mov byte [rdi+3], 'p'
+    mov byte [rdi+4], ' '
+    mov byte [rdi+5], 'O'
+    mov byte [rdi+6], 'K'
+    mov byte [rdi+7], '!'
+    mov byte [rdi+8], 0x0A
+    mov byte [rdi+9], 0
+
+    mov rsi, rdi
+    call print_string_64
+    jmp .loop_prompt
+
+.heap_error:
+    lea rdi, [rel heap_err_msg]
+    call print_string_64
+    hlt
+    jmp $
 
 .loop_prompt:
     lea rdi, [rel prompt]
@@ -110,7 +141,7 @@ shell_entry_point:
 
 strcmp:
     xor rax, rax
-.loop:
+.strcmp_loop:
     mov al, [rdi]
     mov bl, [rsi]
     cmp al, bl
@@ -119,7 +150,7 @@ strcmp:
     je .equal
     inc rdi
     inc rsi
-    jmp .loop
+    jmp .strcmp_loop
 .not_equal:
     mov rax, 1
     ret
@@ -157,10 +188,8 @@ do_reboot:
     in al, 0x64
     test al, 2
     jnz .wait_1
-
     mov al, 0xFE
     out 0x64, al
-
 .halt:
     hlt
     jmp .halt
