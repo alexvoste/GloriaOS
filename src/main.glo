@@ -1,0 +1,11 @@
+fn main() {
+    poke(754304, 2614)
+    poke(754306, 2612)
+
+    let run = 1
+    while run {
+        run = 1
+    }
+    return 0
+}
+
