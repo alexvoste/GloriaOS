@@ -4,6 +4,8 @@ extern send_debug_char_64
 extern pic_init
 extern shell_entry_point
 extern load_idt 
+extern pmm_init 
+
 %include "arch/x86_64/system/opcodes.inc"
 
 [bits 16]
@@ -202,11 +204,14 @@ start64:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov rsp, 0x70000
-
-    call pic_init
+    mov rsp, 0x90000
+    
+    call pic_init    
     call load_idt
-    sti 
+
+    sti
+
+    call pmm_init
 
     mov rbx, 0xB8000
     mov rax, 0x0C58
@@ -216,7 +221,7 @@ start64:
 
     mov rdi, 'X'
     call send_debug_char_64
-
+    
     mov rcx, 2000
     mov rdi, 0xB8000
     mov ax, 0x0720
