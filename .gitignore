@@ -1,0 +1,8 @@
+*.log 
+
+logs.txt 
+
+build/*
+compiler/*
+main.go
+*.bin
