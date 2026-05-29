@@ -13,6 +13,14 @@ RENDER_OBJECTS = ./build/put-char.o \
 	./build/print-string.o \
 	./build/debug_out.o
 
+MEMORY_SOURCES = ./arch/x86_64/memory/pmm.asm \
+	./arch/x86_64/memory/vmm.asm
+
+MEMORY_OBJECTS = ./build/pmm.o \
+	./build/vmm.o  \
+				./build/allocator.o 
+
+
 .PHONY: all clean run
 
 all: $(FINAL_IMG)
@@ -32,18 +40,22 @@ $(LONG_MODE_BIN): $(ENTER_LONG_ASM) $(RENDER_SOURCES)
 	nasm -f elf64 ./arch/x86_64/interrupt/interrupt.asm -o ./build/interrupt.o
 	nasm -f elf64 ./arch/x86_64/user/keyboard.asm -o ./build/keyboard.o
 	nasm -f elf64 ./arch/x86_64/user/shell.asm -o ./build/shell.o
+	nasm -f elf64 ./arch/x86_64/memory/pmm.asm -o ./build/pmm.o
+	nasm -f elf64 ./arch/x86_64/memory/vmm.asm -o ./build/vmm.o
+	nasm -f elf64 ./arch/x86_64/memory/allocator.asm -o ./build/allocator.o 
 	@echo "[+] Assembling Render Engine..."
 	@for file in $(RENDER_SOURCES); do \
 	obj="./build/$$(basename $$file .asm).o"; \
 	nasm -f elf64 -DARCH_PC_RELATIVE_VMODE -i./arch/x86_64/ $$file -o $$obj; \
 	done
 	@echo "[+] Linking Step Two with strict linker script..."
-	ld -m elf_x86_64 -T ./arch/x86_64/linker.ld \
+	  ld -m elf_x86_64 --oformat binary -T ./arch/x86_64/linker.ld \
 	./build/enter_long_mode.o \
 	./build/pic_init.o \
 	./build/interrupt.o \
 	./build/keyboard.o \
 	./build/shell.o \
+	$(MEMORY_OBJECTS) \
 	$(RENDER_OBJECTS) \
 	-o $(LONG_MODE_BIN)
 
