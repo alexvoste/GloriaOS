@@ -4,7 +4,8 @@ extern send_debug_char_64
 extern pic_init
 extern shell_entry_point
 extern load_idt 
-extern pmm_init 
+extern pmm_init
+
 
 %include "arch/x86_64/system/opcodes.inc"
 
@@ -212,7 +213,7 @@ start64:
     sti
 
     call pmm_init
-
+    
     mov rbx, 0xB8000
     mov rax, 0x0C58
     mov [rbx], ax
