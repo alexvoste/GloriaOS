@@ -42,7 +42,7 @@ $(LONG_MODE_BIN): $(ENTER_LONG_ASM) $(RENDER_SOURCES)
 	nasm -f elf64 ./arch/x86_64/user/shell.asm -o ./build/shell.o
 	nasm -f elf64 ./arch/x86_64/memory/pmm.asm -o ./build/pmm.o
 	nasm -f elf64 ./arch/x86_64/memory/vmm.asm -o ./build/vmm.o
-	nasm -f elf64 ./arch/x86_64/memory/allocator.asm -o ./build/allocator.o 
+	nasm -f elf64 ./arch/x86_64/memory/allocator.asm -o ./build/allocator.o
 	@echo "[+] Assembling Render Engine..."
 	@for file in $(RENDER_SOURCES); do \
 	obj="./build/$$(basename $$file .asm).o"; \
